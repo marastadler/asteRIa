@@ -101,6 +101,12 @@ keep_or_not <- output_workflow$keep_or_not
 fit_lm <- output_workflow$refit_lm
 ```
 
+```{r}
+## save output as it will be needed for the synthetic data generation 
+saveRDS(coef_matrix, "data/results/coef_matrix.rds") 
+saveRDS(fit_lm, "data/results/fit_lm.rds")
+```
+
 ### Estimated coefficients 
 
 ```{r}
