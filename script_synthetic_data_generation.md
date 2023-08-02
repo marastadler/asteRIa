@@ -1,6 +1,6 @@
 Synthetic data generation
 ================
-Compiled at 2023-07-30 14:22:35 UTC
+Compiled at 2023-08-02 06:40:19 UTC
 
 Data simulation procedure:
 
@@ -177,11 +177,10 @@ Joint distribution of model coefficients without zeros:
 ``` r
 coef_long_nonzero = coef_long[coef_long$value != 0, ]
 
-ggplot(coef_long_nonzero, aes(value)) + 
+plt_dist_coef <- ggplot(coef_long_nonzero, aes(value)) + 
     geom_histogram(bins = 1000) + theme_minimal()
+ggsave("/Users/mara.stadler/LRZ Sync+Share/PhD/MUDS_Projekt/temp/plt_dist_coef.pdf", plot = plt_dist_coef, height = 2, width = 4)
 ```
-
-![](script_synthetic_data_generation_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 ### Fit asymetric Laplace distribution to non-zero data
 

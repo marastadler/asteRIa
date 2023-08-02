@@ -5,7 +5,7 @@ output: github_document
 ---
 
 ```{r here, message=FALSE, echo = F}
-knitr::opts_chunk$set(dpi = 300, warning = F, message = F)
+knitr::opts_chunk$set(dpi = 500, warning = F, message = F)
 ```
 
 
@@ -174,8 +174,9 @@ Joint distribution of model coefficients without zeros:
 ```{r}
 coef_long_nonzero = coef_long[coef_long$value != 0, ]
 
-ggplot(coef_long_nonzero, aes(value)) + 
+plt_dist_coef <- ggplot(coef_long_nonzero, aes(value)) + 
     geom_histogram(bins = 1000) + theme_minimal()
+ggsave("/Users/mara.stadler/LRZ Sync+Share/PhD/MUDS_Projekt/temp/plt_dist_coef.pdf", plot = plt_dist_coef, height = 2, width = 4)
 ```
 
 
