@@ -647,7 +647,7 @@ for(compl in 1:length(all_complexes)){
       SelProb_comp2 <- SelProb_comp[non_zero_coef_names, ]
     }
 
-    pheatmap::pheatmap(SelProb_comp[which(rowSums(SelProb_comp)>0), ],#[non_zero_coef_names, ], 
+  p3 <-  pheatmap::pheatmap(SelProb_comp[which(rowSums(SelProb_comp)>0), ],#[non_zero_coef_names, ], 
                        fontsize_row = 7, 
                        fontsize_col = 7, 
                        color = colorRampPalette((brewer.pal(n = 7, name = "Greys")
@@ -664,7 +664,7 @@ for(compl in 1:length(all_complexes)){
   
   
   ## Now mean of the two stability profiles
-   pheatmap::pheatmap((SelProb_comp1 + SelProb_comp2)/2,
+  p4 <- pheatmap::pheatmap((SelProb_comp1 + SelProb_comp2)/2,
                        fontsize_row = 8,
                        fontsize_col = 8,
                        color = colorRampPalette((brewer.pal(n = 7, name = "Greys")
@@ -679,8 +679,6 @@ for(compl in 1:length(all_complexes)){
                        gaps_row = 12,
                        silent = silent)
 }
-
-
 ```
 
 ### Mean Selection probability for each complex

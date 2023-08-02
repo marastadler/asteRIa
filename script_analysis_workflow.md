@@ -103,6 +103,12 @@ keep_or_not <- output_workflow$keep_or_not
 fit_lm <- output_workflow$refit_lm
 ```
 
+``` r
+## save output as it will be needed for the synthetic data generation 
+saveRDS(coef_matrix, "data/results/coef_matrix.rds") 
+saveRDS(fit_lm, "data/results/fit_lm.rds")
+```
+
 ### Estimated coefficients
 
 ``` r
@@ -156,7 +162,7 @@ pheatmap::pheatmap(coef_matrix[!zero_rows, !zero_cols][, data_int1],
                    gaps_row = 12)
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 ### Visualize how often what combi is observed (linear vs. interaction)
 
@@ -219,7 +225,7 @@ pheatmap(lin_int_mat, cluster_rows = F, cluster_cols = F,
          legend = F)
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 ### Design: how often does a combination of modifications occur together?
 
@@ -232,7 +238,7 @@ pheatmap(int_mat, cluster_rows = F, cluster_cols = F,
   )
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 ## Plot P matrix for 58 proteins of interest
 
@@ -276,7 +282,7 @@ pheatP_int <- pheatmap(P_int_plt, cluster_cols = F, cluster_rows = F,
          )
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 ## Refitting without interaction coefficients
 
@@ -311,7 +317,7 @@ scatterplot_interactions(coef_matrix, index_int, q = 12) +
     labs(color=bquote(hat(theta)["Interaction"])) 
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 ``` r
 Proteins_int <- names(interaction_proteins[interaction_proteins == TRUE])
@@ -360,7 +366,7 @@ plot_list_p_phat[which(Proteins_int == "TAF10")]
 
     ## [[1]]
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
 ## Barplot r-squared
 
@@ -420,7 +426,7 @@ ggplot(data=df2, aes(x=Protein, y=Rsquared, fill=Model)) +
   labs(y = expression(paste('Adjusted ', R^2)))
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
 
 ## Compare overlap of selected proteins with interactions for different thresholds
 
@@ -486,7 +492,7 @@ list_int <- list("50 %" = Int_prot05, "55 %" = Int_prot055,
 venn(list_int, ilab=TRUE, zcolor = "style", box = F, ggplot = T )
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
 
 ## Visualization of selection probabilities for protein complexes
 
@@ -686,7 +692,7 @@ for(compl in 1:length(all_complexes)){
 }
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-25-2.png)<!-- -->![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-25-3.png)<!-- -->![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-25-4.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-26-2.png)<!-- -->![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-26-3.png)<!-- -->![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-26-4.png)<!-- -->
 
 ### Mean Selection probability for each complex
 
@@ -765,4 +771,4 @@ sankeyNetwork(Links = data_long, Nodes = nodes,
               )
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
