@@ -1,6 +1,7 @@
 
 
-# asteRIa: Modeling Robust Interactions <img alt="asteRIa-logo-github2" src="https://github.com/marastadler/RobustInteractions/assets/61226497/ef18e053-07e6-4340-b400-98f1fd21c1ce" align="right" width="200" />
+# asteRIa: Modeling Robust Interactions <img alt="asteRIa-logo-github2" src="https://github.com/marastadler/RobustInteractions/assets/61226497/6cdb3096-a3a4-4fe1-84be-21026cd7677b" align="right" width="200" />
+
 
 
 
