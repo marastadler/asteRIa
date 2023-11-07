@@ -1,7 +1,7 @@
 # asteRIa: Modeling Robust Interactions
 
 
-<img width="1026" alt="asteRIa-logo-github" src="https://github.com/marastadler/RobustInteractions/assets/61226497/4f066a08-8e1b-4010-9338-7edaff6d46cf">
+<img width="750" alt="asteRIa-logo-github" src="https://github.com/marastadler/RobustInteractions/assets/61226497/4f066a08-8e1b-4010-9338-7edaff6d46cf">
 
 
 This repository contains the code for the manuscript 'A statistical workflow for the robust detection of interaction effects between
