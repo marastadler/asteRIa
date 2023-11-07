@@ -1,4 +1,6 @@
-# RobustInteractions
+# asteRIa: Modeling Robust Interactions
+![screenshot_2023-11-07_at_11 48 34_720](https://github.com/marastadler/RobustInteractions/assets/61226497/2969ff09-8462-4d4f-b2dc-075d3cb7b227)
+
 
 This repository contains the code for the manuscript 'A statistical workflow for the robust detection of interaction effects between
 chromatin modifications'.
