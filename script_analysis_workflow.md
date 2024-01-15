@@ -66,6 +66,7 @@ should run this code in parallel on a cluster. To only try the workflow
 one can run it for only a few proteins (e.g. as.list(1:3)).
 
 ``` r
+## This should not be run here
 source("R/mainFunctions.R")
 stabsel_hiernet_cluster <- parallel::mclapply(as.list(1:1915),
                                   function(p, P, L){return(stabsel_hiernet(p, P, L))},
@@ -109,6 +110,25 @@ saveRDS(coef_matrix, "data/results/coef_matrix.rds")
 saveRDS(fit_lm, "data/results/fit_lm.rds")
 ```
 
+``` r
+## Remove zero rows and zero columns:
+zero_rows <- apply(coef_matrix, 1, function(x) all(x == 0))
+zero_cols <- apply(coef_matrix, 2, function(x) all(x == 0))
+
+## what proteins do respond to interaction effects?
+interaction_proteins1 <- apply(coef_matrix[13:nrow(coef_matrix),], 2, function(x) !all(x == 0))
+interaction_proteins <- interaction_proteins1
+## remove proteins with low predictive performance(R^2 < .2): SMC6, SET, PHF23
+interaction_proteins[which(names(interaction_proteins) %in% c("SMC6", "SET", "PHF23"))] <- FALSE
+sum(interaction_proteins)
+```
+
+    ## [1] 55
+
+In total, there are 58 proteins for which we do find interaction
+effects. We only show the 55 proteins with an $R^2>.2$ in the
+visualizations.
+
 ### Estimated coefficients
 
 ``` r
@@ -123,19 +143,47 @@ coef_matrix[1:5,1:5]
     ## H3K9 me3      -0.03188206  0.11128244 -0.024817570 -0.03284810 -0.1176556
 
 ``` r
-## Remove zero rows and zero columns:
-zero_rows <- apply(coef_matrix, 1, function(x) all(x == 0))
-zero_cols <- apply(coef_matrix, 2, function(x) all(x == 0))
+coef_matrix_plt <- coef_matrix
+## order by R^2
+r_squared_all = c()
+for(pint in 1:1915){
+  p = pint
+  if(!is.null(fit_lm[[p]])){
+    r_squared_all[p] <- summary(fit_lm[[p]])$adj.r.squared
+  }
+  
+}
+names(r_squared_all) <- colnames(coef_matrix_plt)
+r_squared_all[is.na(r_squared_all)] <- 0
+coef_matrix_plt <- coef_matrix_plt[, order(r_squared_all, decreasing = T)]
+## set exact zeros to NA for visualization reasons
+coef_matrix_plt[coef_matrix_plt == 0] <- NA
+## remove proteins with interactions
+int_nam <-names(interaction_proteins1[interaction_proteins1])
+coef_matrix_plt <- coef_matrix_plt[, !(colnames(coef_matrix_plt) %in% int_nam)]
 
-## what proteins do respond to interaction effects?
-interaction_proteins <- apply(coef_matrix[13:nrow(coef_matrix),], 2, function(x) !all(x == 0))
-sum(interaction_proteins)
+colnames(coef_matrix_plt)[colnames(coef_matrix_plt) == "HIST[1H4A,1H4B,1H4C,1H4E,1H4F,1H4H,1H4I,1H4L,2H4A,4H4]"] <- "HIST[1H4A,...]"
+
+for(i in 1:11 * 155){
+  pdf(paste0("heatmap_coef_test", i/155 ,".pdf"), height = 25, width = 5)
+  
+  pheatmap::pheatmap(t(coef_matrix_plt[1:12, (i - 154):i]), cluster_rows = F, cluster_cols = F,
+                     color = colorRampPalette(rev(brewer.pal(n = 7, name =
+                                                               "RdBu")))(100), border_color = "white", 
+                     breaks = seq(-2, 2, length.out = 100), 
+                     cellheight = 10, cellwidth = 10,
+                     fontsize_row = 10, fontsize_col = 10, na_col = "white", legend = F)
+  dev.off()
+}
+# pdf(paste0("heatmap_coef_test", 12 ,".pdf"), height = 25, width = 5)
+pheatmap::pheatmap(t(coef_matrix_plt[1:12, (11 * 155 + 1): ncol(coef_matrix_plt)]), cluster_rows = F, cluster_cols = F,
+                     color = colorRampPalette(rev(brewer.pal(n = 7, name =
+                                                               "RdBu")))(100), border_color = "white", 
+                     breaks = seq(-2, 2, length.out = 100), 
+                     cellheight = 10, cellwidth = 10,
+                     fontsize_row = 10, fontsize_col = 10, na_col = "white", legend = T)
+# dev.off()
 ```
-
-    ## [1] 58
-
-In total, there are 58 proteins for which we do find interaction
-effects.
 
 ### Visualize estimated coefficients for proteins with interaction effects
 
@@ -144,27 +192,31 @@ data_int1 <- paste0(names(interaction_proteins[interaction_proteins == TRUE]))
 
 data_int <- paste0(rep(names(interaction_proteins[interaction_proteins == TRUE]), each = 2), c("_F", "_R"))
 
-
-pheatmap::pheatmap(coef_matrix[!zero_rows, !zero_cols][, data_int1], 
-                   fontsize_row = 8, 
-                   fontsize_col = 8, 
+# pdf("heatmap-coeff-hiernet-CPSS-only_int.pdf", width = 8, height = 16)
+pheatmap::pheatmap(t(coef_matrix[!zero_rows, !zero_cols][, data_int1]), ## transform matrix for pdf output
+                   fontsize_row = 10, 
+                   fontsize_col = 12, 
                    color = colorRampPalette(rev(brewer.pal(
                      n = 7, name = "RdBu")))(100),  
                    breaks = seq(-3, 3, length.out = 100), 
                    angle_col = 90,
-                   cluster_rows = F, 
-                   cluster_cols = T, 
+                   cluster_rows = T, 
+                   cluster_cols = F, 
                    border_color = "white",
                    cellwidth = 14, 
                    cellheight = 11, 
-                   cutree_cols = 12,
+                   cutree_rows = 12,
                    treeheight_col = 9, 
-                   gaps_row = 12)
+                   gaps_col = 12)
 ```
 
 ![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
-### Visualize how often what combi is observed (linear vs. interaction)
+``` r
+# dev.off()
+```
+
+### Visualize how often a combination is observed (linear vs. interaction)
 
 ``` r
 q = 12
@@ -240,16 +292,17 @@ pheatmap(int_mat, cluster_rows = F, cluster_cols = F,
 
 ![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
-## Plot P matrix for 58 proteins of interest
+## Plot P matrix for interactions proteins of interest
 
 ``` r
 ## number of proteins with interaction effects
 
-
+remove_exp <- c()
 P_int = P[, data_int]
 for(i in seq(1, ncol(P_int), by = 2)){
   if(!all(sign(P_int[, i]) == sign(P_int[, i + 1]))){
     toNA <- which(sign(P_int[, i]) != sign(P_int[, i + 1]))
+    remove_exp[i] <- length(toNA)
     P_int[toNA, i] <- NA
     P_int[toNA, i + 1] <- NA
   }
@@ -266,23 +319,28 @@ P_int_plt <- P_int_plt[, names(sort((rank(colSums(is.na(P_int_plt)), ties.method
 colramp = colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(115)
 colramp = colramp[c(1:49, 65:115)]
 
-
+#pdf("heatmap-P-interactions-hiernet-CPSS.pdf", width = 50*2/6, height = 33/2)
 pheatP_int <- pheatmap(P_int_plt, cluster_cols = F, cluster_rows = F,
          color = c(colramp, "grey75"), 
          breaks = c(seq(-abs(max(P_int, na.rm = T)), abs(max(P_int, na.rm = T)),
                         length.out = 100), abs(max(P_int, na.rm = T)) + 1),
-         fontsize_row = 0.0001, fontsize_col = rep(c(13, 0.0001), 50), 
+         fontsize_row = 0.0001, fontsize_col = rep(c(15, 0.0001), 50), 
          labels_col = substr(colnames(P_int_plt), 1, 
                              nchar(colnames(P_int_plt)) - 2),
          cellheight = 16, cellwidth = 8, 
          border_color = "white",
          na_col = "grey99", 
          angle_col = 90,
-         gaps_col = seq(from = 2, to = 98, by =2)
+         gaps_col = seq(from = 2, to = 98, by =2),
+         fontsize = 15
          )
 ```
 
 ![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+``` r
+# dev.off()
+```
 
 ## Refitting without interaction coefficients
 
@@ -311,13 +369,17 @@ for(p in index_int){
 
 ``` r
 source("R/plotFunctions.R")
+pdf("scatterplots-interactions-all-height.pdf", height = 7,
+    width = 8.5)
 scatterplot_interactions(coef_matrix, index_int, q = 12) + 
-    xlab(bquote(hat(beta)["Mod. 1"])) + 
-    ylab(bquote(hat(beta)["Mod. 2"]))  + 
-    labs(color=bquote(hat(theta)["Interaction"])) 
+    xlab(bquote(hat(beta)["j"])) + 
+    ylab(bquote(hat(beta)["k"]))  + 
+    labs(color=bquote(hat(theta)["j,k"])) 
+dev.off()
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+    ## quartz_off_screen 
+    ##                 2
 
 ``` r
 Proteins_int <- names(interaction_proteins[interaction_proteins == TRUE])
@@ -350,7 +412,7 @@ for(pint in Proteins_int){
   plot_list_p_phat[[n]] <- ggplot(df_p, 
                                   aes(x = Prediction, 
                                       y = Observation)) + 
-    geom_point(alpha = .8, aes(color = Legend), size = 3) +
+    geom_point(alpha = .8, aes(color = Legend), size = 2) +
 
     theme_minimal() +
     geom_abline(intercept = 0, slope = 1) +
@@ -360,13 +422,7 @@ for(pint in Proteins_int){
 
 
 }
-
-plot_list_p_phat[which(Proteins_int == "TAF10")]
 ```
-
-    ## [[1]]
-
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
 ## Barplot r-squared
 
@@ -415,18 +471,31 @@ order_nb_zeros <- order_nb_zeros[seq(1, length(order_nb_zeros), by = 2)]
 
 df2$Protein <- factor(df2$Protein, levels = order_nb_zeros)
 df2$Rsquared[df2$Rsquared<0] <- 0
-
+pdf("/Users/mara.stadler/LRZ Sync+Share/PhD/MUDS_Projekt/temp/barplot_rsquared2.pdf",
+    height = 5, width = 15)
 
 ggplot(data=df2, aes(x=Protein, y=Rsquared, fill=Model)) +
   geom_bar(stat="identity", position="identity", alpha = .9) +
   scale_fill_manual(values = c("steelblue", " azure2")) +
   theme_minimal() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+    theme(axis.text.x = element_text(family = "Helvetica", colour="black",
+                                         size=10, angle = 90, vjust = 0.5, hjust=1),
+          axis.title.x = element_text(size = 0),
+          axis.text.y = element_text(family = "Helvetica", colour="black",
+                                         size=10),
+          axis.title.y = element_text(family = "Helvetica", colour="black",
+                                         size=14),
+          legend.text = element_text(family = "Helvetica", colour="black",
+                                         size=14),
+          legend.title = element_text(family = "Helvetica", colour="black",
+                                         size=14),
           legend.position="left") +
   labs(y = expression(paste('Adjusted ', R^2)))
+dev.off()
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+    ## quartz_off_screen 
+    ##                 2
 
 ## Compare overlap of selected proteins with interactions for different thresholds
 
@@ -492,7 +561,9 @@ list_int <- list("50 %" = Int_prot05, "55 %" = Int_prot055,
 venn(list_int, ilab=TRUE, zcolor = "style", box = F, ggplot = T )
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+
+## Comparison selection probabilities for individual proteins
 
 ## Visualization of selection probabilities for protein complexes
 
@@ -552,19 +623,6 @@ TFIID_complex = TFIID_complex[!is.na(TFIID_complex$`Our identifier`), ]
 SAGA_complex = complexes[which(complexes$`Protein complex name` == "SAGA"), ]
 SAGA_complex = SAGA_complex[!is.na(SAGA_complex$`Our identifier`), ] 
 
-### Integrator complex
-Integrator_complex = complexes[which(complexes$`Protein complex name` == "Integrator"), ]
-Integrator_complex = Integrator_complex[!is.na(Integrator_complex$`Our identifier`), ] 
-
-### Mediator complex
-
-Mediator_complex = complexes[which(complexes$`Protein complex name` == "Mediator"), ]
-Mediator_complex = Mediator_complex[!is.na(Mediator_complex$`Our identifier`), ] 
-
-### ncPRC1.6 complex
-ncPRC1.6_complex = complexes[which(complexes$`Protein complex name` == "ncPRC1.6"), ]
-ncPRC1.6_complex = ncPRC1.6_complex[!is.na(ncPRC1.6_complex$`Our identifier`), ] 
-
 ### HUSH complex
 HUSH_complex = complexes[which(complexes$`Protein complex name` == "HUSH"), ]
 
@@ -585,12 +643,13 @@ zero_rows_all <- apply(coef_matrix, 1, function(x) all(x == 0))
 non_zero_coef_names <- names(which(zero_rows_all==FALSE))
 
 all_complexes <- list(PRC1_complex, TFIID_complex, SAGA_complex, 
-                      Integrator_complex, Mediator_complex, ncPRC1.6_complex,
                       HUSH_complex, ATAC_complex)
+rownames(SelProb_F)<- gsub('H2A.Z H2A.Z','H2A.Z', rownames(SelProb_F))
+rownames(SelProb_R)<- gsub('H2A.Z H2A.Z','H2A.Z', rownames(SelProb_R))
+
 Sel_FR <- list(SelProb_F, SelProb_R)
 all_complexes_names <- c("PRC1 complex", "TFIID complex", "SAGA complex",
-                         "Integrator complex", "Mediator complex",
-                         "ncPCR1.6 complex", "HUSH complex", "ATAC complex")
+               "HUSH complex", "ATAC complex")
 fr_name <- c("F", "R")
 
 ## Mean selection probability within complex
@@ -599,8 +658,9 @@ mean_sel_prob_R <- matrix(ncol = length(all_complexes), nrow = 78)
 
 for(compl in 1:length(all_complexes)){
   
-  if(compl > 1){silent = T} # only plot PRC1 complex here
-  else{silent = F}
+  #if(compl > 1){silent = T} # only plot PRC1 complex here
+  #else{silent = F}
+  silent=F
   comp <- all_complexes[[compl]]
   comp <- as.data.frame(comp)
   
@@ -616,7 +676,7 @@ for(compl in 1:length(all_complexes)){
   
   ## keep all linear features:
   zero_rows[1:12] <- F
-  
+  pdf(paste0("coef_", all_complexes_names[compl], ".pdf"))
   pheatmap::pheatmap(coef_comp[!zero_rows, ], 
                      fontsize_row = 7, 
                      fontsize_col = 7, 
@@ -633,7 +693,7 @@ for(compl in 1:length(all_complexes)){
                      main = main0,
                      gaps_row = 12,
                      silent = silent)
-  
+  dev.off()
   
   ## Now heatmaps of stability profiles
   for(fr in 1:length(Sel_FR)){
@@ -648,21 +708,22 @@ for(compl in 1:length(all_complexes)){
     
     
     
-    main <- paste0(all_complexes_names[compl], " stabilty ", fr_name[fr])
+    main <- paste0(all_complexes_names[compl], " stability ", fr_name[fr])
+    ind <- which(rowSums(SelProb_comp)>0)
     if(fr == 1) {
       mean_sel_prob_F[, compl] <- rowMeans(SelProb_comp)
-      SelProb_comp1 <- SelProb_comp[non_zero_coef_names, ]
+      SelProb_comp1 <- SelProb_comp[ind, ]#[non_zero_coef_names, ]
       }
     if(fr == 2){
       mean_sel_prob_R[, compl] <- rowMeans(SelProb_comp)
-      SelProb_comp2 <- SelProb_comp[non_zero_coef_names, ]
+      SelProb_comp2 <- SelProb_comp[ind, ]#[non_zero_coef_names, ]
     }
-
-    pheatmap::pheatmap(SelProb_comp[which(rowSums(SelProb_comp)>0), ],#[non_zero_coef_names, ], 
+  pdf(paste0("selProb_", fr, "_", all_complexes_names[compl], ".pdf"))
+  pheatmap::pheatmap(SelProb_comp[which(rowSums(SelProb_comp)>0), ],
                        fontsize_row = 7, 
                        fontsize_col = 7, 
                        color = colorRampPalette((brewer.pal(n = 7, name = "Greys")
-                       ))(100), # breaks = seq(-3, 3, length.out = 100),
+                       ))(100), 
                        cellheight = 7, 
                        cellwidth = 7,
                        border_color = "white",
@@ -671,28 +732,28 @@ for(compl in 1:length(all_complexes)){
                        main = main,
                        gaps_row = 12,
                        silent = silent)
+  dev.off()
   }
   
   
   ## Now mean of the two stability profiles
-   pheatmap::pheatmap((SelProb_comp1 + SelProb_comp2)/2,
-                       fontsize_row = 8,
-                       fontsize_col = 8,
+  pdf(paste0("selProbmean_", all_complexes_names[compl], ".pdf"))
+  pheatmap::pheatmap((SelProb_comp1 + SelProb_comp2)/2,
+                       fontsize_row = 7,
+                       fontsize_col = 7,
                        color = colorRampPalette((brewer.pal(n = 7, name = "Greys")
-                       ))(100), # breaks = seq(-3, 3, length.out = 100),
-                       
-                       cellwidth = 11, 
-                      cellheight = 14,
+                       ))(100), 
+                       cellwidth = 7, 
+                       cellheight = 7,
                        border_color = "white",
                        cluster_rows = F,
                        cluster_cols = F,
                        main = "Mean F/R",
                        gaps_row = 12,
                        silent = silent)
+  dev.off()
 }
 ```
-
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-26-2.png)<!-- -->![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-26-3.png)<!-- -->![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-26-4.png)<!-- -->
 
 ### Mean Selection probability for each complex
 
@@ -704,29 +765,20 @@ rownames(mean_sel_prob) <- rownames(SelProb_F)
 head(mean_sel_prob)
 ```
 
-    ##               PRC1 complex TFIID complex SAGA complex Integrator complex
-    ## H3K27 me3        0.9050000     0.6165625    0.6230952          0.7671429
-    ## H3K9 me2         0.4281818     0.3896875    0.4378571          0.5921429
-    ## H3K27 me2        0.5009091     0.3481250    0.4616667          0.5060714
-    ## DNA Meth. m5C    0.8245455     0.6675000    0.7507143          0.8407143
-    ## H3K9 me3         0.7681818     0.5390625    0.6085714          0.6739286
-    ## H4K20 me3        0.6745455     0.4871875    0.5569048          0.6832143
-    ##               Mediator complex ncPCR1.6 complex HUSH complex ATAC complex
-    ## H3K27 me3            0.6528947        0.7470000        0.749    0.6363636
-    ## H3K9 me2             0.5921053        0.4986667        0.630    0.4559091
-    ## H3K27 me2            0.5768421        0.5553333        0.423    0.4259091
-    ## DNA Meth. m5C        0.8434211        0.9506667        0.800    0.7968182
-    ## H3K9 me3             0.6397368        0.7560000        0.819    0.5900000
-    ## H4K20 me3            0.6721053        0.7086667        0.642    0.6213636
+    ##               PRC1 complex TFIID complex SAGA complex HUSH complex ATAC complex
+    ## H3K27 me3        0.9050000     0.6165625    0.6230952        0.749    0.6363636
+    ## H3K9 me2         0.4281818     0.3896875    0.4378571        0.630    0.4559091
+    ## H3K27 me2        0.5009091     0.3481250    0.4616667        0.423    0.4259091
+    ## DNA Meth. m5C    0.8245455     0.6675000    0.7507143        0.800    0.7968182
+    ## H3K9 me3         0.7681818     0.5390625    0.6085714        0.819    0.5900000
+    ## H4K20 me3        0.6745455     0.4871875    0.5569048        0.642    0.6213636
 
 Sankey diagram
 
 ``` r
 data <- mean_sel_prob
 colnames(data) <- substr(colnames(data), 1, nchar(colnames(data)) - 8)
-# remove ncPCR1.6 complex 
-ind_ncPCR16 <- which(colnames(data) == "ncPCR1.6")
-data <- data[, -ind_ncPCR16]
+
 data <- data[13:nrow(data), ]
 data[data < 0.2] <- 0 ## show everything that is above a mean selection probability of .2
 
@@ -735,7 +787,7 @@ rem <- which(rowSums(data)==0)
 data <- data[-rem,]
 
 
-# I need a long format
+# long format
 data_long <- data %>% 
   as.data.frame() %>%
   rownames_to_column %>%
@@ -771,4 +823,4 @@ sankeyNetwork(Links = data_long, Nodes = nodes,
               )
 ```
 
-![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+![](script_analysis_workflow_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
