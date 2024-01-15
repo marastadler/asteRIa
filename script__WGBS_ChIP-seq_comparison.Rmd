@@ -142,7 +142,7 @@ mm <- mm[-remove_rows, ]
 ```
 
 ```{r eval = T}
-set.seed(123)
+set.seed(1234)
 subs <- sample(1:nrow(mm), 50000) ## only a subsample to reduce compute time
 pkend_A549 <- pcor(mm[subs, ], method = "kendall")
 ```
@@ -259,7 +259,7 @@ mm <- mm[-remove_rows, ]
 ```
 
 ```{r}
-set.seed(123)
+set.seed(1234)
 subs <- sample(1:nrow(mm), 50000)
 pkend_K562 <- pcor(mm[subs, ], method = "kendall")
 ```
@@ -367,7 +367,7 @@ mm <- mm[-remove_rows, ]
 ```
 
 ```{r}
-set.seed(123)
+set.seed(1234)
 subs <- sample(1:nrow(mm), 50000)
 pkend_H1 <- pcor(mm[subs, ], method = "kendall")
 ```
@@ -466,7 +466,7 @@ mm <- mm[-remove_rows, ]
 ```
 
 ```{r}
-set.seed(123)
+set.seed(1234)
 subs <- sample(1:nrow(mm), 50000)
 pkend_mES <- pcor(mm[subs, ], method = "kendall")
 ```

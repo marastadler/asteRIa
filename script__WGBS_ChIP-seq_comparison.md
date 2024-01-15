@@ -1,6 +1,6 @@
 WGBS ChIP-seq comparison with ENCODE and ChIP-Atlas data
 ================
-Compiled at 2023-09-20 19:25:35 UTC
+Compiled at 2024-01-15 18:03:54 UTC
 
 The purpose of this document is to validate some of our results with
 data from ENCODE and ChIP-Atlas.
@@ -135,7 +135,7 @@ mm <- mm[-remove_rows, ]
 ```
 
 ``` r
-set.seed(123)
+set.seed(1234)
 subs <- sample(1:nrow(mm), 50000) ## only a subsample to reduce compute time
 pkend_A549 <- pcor(mm[subs, ], method = "kendall")
 ```
@@ -261,7 +261,7 @@ mm <- mm[-remove_rows, ]
 ```
 
 ``` r
-set.seed(123)
+set.seed(1234)
 subs <- sample(1:nrow(mm), 50000)
 pkend_K562 <- pcor(mm[subs, ], method = "kendall")
 ```
@@ -362,7 +362,7 @@ mm <- mm[-remove_rows, ]
 ```
 
 ``` r
-set.seed(123)
+set.seed(1234)
 subs <- sample(1:nrow(mm), 50000)
 pkend_H1 <- pcor(mm[subs, ], method = "kendall")
 ```
@@ -460,7 +460,7 @@ mm <- mm[-remove_rows, ]
 ```
 
 ``` r
-set.seed(123)
+set.seed(1234)
 subs <- sample(1:nrow(mm), 50000)
 pkend_mES <- pcor(mm[subs, ], method = "kendall")
 ```
