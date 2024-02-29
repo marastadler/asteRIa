@@ -1,6 +1,6 @@
 
 
-# asteRIa: Modeling Robust Interactions <img alt="asteRIa-logo-github2" src="https://github.com/marastadler/RobustInteractions/assets/61226497/6cdb3096-a3a4-4fe1-84be-21026cd7677b" align="right" width="200" />
+# asteRIa: stable estimation of Robust Interactions <img alt="asteRIa-logo-github2" src="https://github.com/marastadler/RobustInteractions/assets/61226497/6cdb3096-a3a4-4fe1-84be-21026cd7677b" align="right" width="200" />
 
 
 
@@ -8,8 +8,7 @@
 
 
 
-This repository contains the code for the manuscript 'A statistical workflow for the robust detection of interaction effects between
-chromatin modifications'.
+This repository contains the code for the manuscript 'asteRIa enables robust interaction modeling between chromatin modifications and epigenetic readers'.
 
 We assume to be in a setting with an (binary) experimental design matrix L with n rows (observations) and q features. 
 Under this design a corresponding multiple readout P with n rows and p columns is available.
