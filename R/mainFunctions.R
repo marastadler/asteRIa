@@ -104,11 +104,9 @@ L_ <- L
 #' stabsel_hiernet
 #' This function runs hiernet with stability selection
 #
-#' @param x binary input matrix of the dimension n x p (samples x proteins)
-#' @param y outcome vector of length n
-#' @param q number of (unique) selected variables (or groups of variables depending on the model) that are selected on each subsample.
-#' @param l number of main effects/linear features -> stabsel() requires all effects
-#'         (main + interactions) and hierNet.path() only requires linear features as x input
+#' @param p p-th feature in P n x p (samples x proteins)
+#' @param P n x p - dimensional outcome
+#' @param L n x q experimental design
 
 
 
@@ -122,8 +120,10 @@ stabsel_hiernet <- function(p, P = P_, L = L_){
   
   
   ## indices of sign inconsistent measurements (F vs. R)
-  sign_incon <- which(sign(as.vector(P[, p])) !=
-                        sign(as.vector(P[, p + 1915])))
+  # sign_incon <- which(sign(as.vector(P[, p])) !=
+  #                       sign(as.vector(P[, p + 1915])))
+  
+  sign_incon <- which(abs(as.vector(P[, p]) - as.vector(P[, p + 1915])) > 0.3)
   ## remove sign inconsistent observations
   if(length(sign_incon) != 0){
     PF_p <- P[-sign_incon, p] ## forward protein binding
@@ -158,13 +158,12 @@ stabsel_hiernet <- function(p, P = P_, L = L_){
   return(list("F" = stab.hiernetF, "R" = stab.hiernetR))
 }
 
-
-
-
-# stabsel_hiernet_cluster <- parallel::mclapply(as.list(1:1915),
-#                                   function(p, P, L){return(stabsel_hiernet(p, P, L))},
-#                                   P = P_, L = L_,
-#                                   mc.cores = 20, mc.preschedule = FALSE)
+# stabsel_hiernet_cluster_dist <- parallel::mclapply(as.list(1:1915),
+#                                               function(p, P, L){return(stabsel_hiernet(p, P, L))},
+#                                               P = P_, L = L_,
+#                                               mc.cores = 8, mc.preschedule = FALSE)
+# 
+# saveRDS(stabsel_hiernet_cluster_dist, "/Users/mara.stadler/LRZ Sync+Share/PhD/MUDS_Projekt/temp/stabsel_hiernet_cluster__dist.rds")
 
 
 
